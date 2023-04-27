@@ -1,7 +1,7 @@
 using Unity.Netcode;
 using UnityEngine;
 
-public class SnakeController : NetworkBehaviour
+public class PlayerController : NetworkBehaviour
 {
     [SerializeField] float _moveSpeed = 5f;
     [SerializeField] Transform _transform;
