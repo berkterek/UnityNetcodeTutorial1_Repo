@@ -178,6 +178,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _button: {fileID: 366863570}
   _text: {fileID: 1200801018}
+  _networkButtons:
+  - {fileID: 704109365}
+  - {fileID: 1127359970}
 --- !u!114 &366863570
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -399,6 +402,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _button: {fileID: 704109366}
   _text: {fileID: 1845614344}
+  _networkButtons:
+  - {fileID: 366863569}
+  - {fileID: 1127359970}
 --- !u!114 &704109366
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -536,6 +542,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _button: {fileID: 1127359971}
   _text: {fileID: 1795207526}
+  _networkButtons:
+  - {fileID: 366863569}
+  - {fileID: 704109365}
 --- !u!114 &1127359971
 MonoBehaviour:
   m_ObjectHideFlags: 0

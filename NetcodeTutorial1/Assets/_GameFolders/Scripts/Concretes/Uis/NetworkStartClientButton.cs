@@ -10,5 +10,6 @@ public class NetworkStartClientButton : BaseNetworkStartButton
     protected override void HandleOnButtonClicked()
     {
         NetworkManager.Singleton.StartClient();
+        base.HandleOnButtonClicked();
     }
 }

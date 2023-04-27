@@ -10,5 +10,6 @@ public class NetworkStartServerButton : BaseNetworkStartButton
     protected override void HandleOnButtonClicked()
     {
         NetworkManager.Singleton.StartServer();
+        base.HandleOnButtonClicked();
     }
 }

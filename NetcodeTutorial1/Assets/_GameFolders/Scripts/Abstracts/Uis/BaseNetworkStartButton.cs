@@ -6,6 +6,7 @@ public abstract class BaseNetworkStartButton : MonoBehaviour
 {
     [SerializeField] Button _button;
     [SerializeField] protected TMP_Text _text;
+    [SerializeField] BaseNetworkStartButton[] _networkButtons;
 
     void OnValidate()
     {
@@ -30,5 +31,13 @@ public abstract class BaseNetworkStartButton : MonoBehaviour
         _button.onClick.RemoveListener(HandleOnButtonClicked);
     }
 
-    protected abstract void HandleOnButtonClicked();
+    protected virtual void HandleOnButtonClicked()
+    {
+        foreach (var networkButton in _networkButtons)
+        {
+            networkButton.gameObject.SetActive(false);
+        }
+        
+        this.gameObject.SetActive(false);
+    }
 }
