@@ -9,7 +9,6 @@ public class TailController : MonoBehaviour
 
     Vector3 _targetPosition;
 
-
     public Transform FollowTransform { get; set; }
     public Transform NetworkOwner { get; set; }
 

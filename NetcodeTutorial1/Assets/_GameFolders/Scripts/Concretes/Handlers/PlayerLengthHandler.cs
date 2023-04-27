@@ -7,6 +7,7 @@ public class PlayerLengthHandler : NetworkBehaviour
     [SerializeField] GameObject _tailPrefab;
     [SerializeField] Transform _transform;
     
+    //NetworkVariable means all clients sync this value and this value changes only by server side
     public NetworkVariable<ushort> Length = new(1);
 
     List<GameObject> _tails;
@@ -24,6 +25,7 @@ public class PlayerLengthHandler : NetworkBehaviour
     public override void OnNetworkSpawn()
     {
         base.OnNetworkSpawn();
+        this.enabled = IsOwner;
         _tails = new List<GameObject>();
         _lastTail = _transform;
         _collider2D = GetComponent<Collider2D>();

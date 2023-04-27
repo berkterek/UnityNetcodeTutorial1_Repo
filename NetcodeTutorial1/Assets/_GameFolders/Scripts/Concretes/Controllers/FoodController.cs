@@ -1,8 +1,11 @@
+using Unity.BossRoom.Infrastructure;
 using Unity.Netcode;
 using UnityEngine;
 
 public class FoodController : NetworkBehaviour
 {
+    public GameObject Prefab { get; set; }
+
     void OnTriggerStay2D(Collider2D other)
     {
         if (!other.CompareTag("Player")) return;
@@ -13,12 +16,13 @@ public class FoodController : NetworkBehaviour
         if (other.TryGetComponent(out PlayerLengthHandler playerLengthHandler))
         {
             playerLengthHandler.AddLength();
-        } 
+        }
         else if (other.TryGetComponent(out TailController tailController))
         {
             tailController.NetworkOwner.GetComponent<PlayerLengthHandler>().AddLength();
         }
-        
-        NetworkObject.Despawn();
+
+        NetworkObjectPool.Singleton.ReturnNetworkObject(NetworkObject, Prefab);
+        NetworkObject.Despawn(false);
     }
 }
