@@ -7,11 +7,11 @@ public class SnakeController : NetworkBehaviour
     [SerializeField] Transform _transform;
 
     Camera _mainCamera;
-
-    Vector3 _mouseInput;
+    Vector3 _mouseInput = Vector3.zero;
 
     private void Initialize()
     {
+        this.enabled = IsOwner;
         _mainCamera = Camera.main;
         _transform = transform;
     }
@@ -25,7 +25,6 @@ public class SnakeController : NetworkBehaviour
     void Update()
     {
         if (!Application.isFocused) return;
-        if (!NetworkObject.IsOwner) return;
         
         _mouseInput = (Vector2)Input.mousePosition;
         _mouseInput.z = _mainCamera.nearClipPlane;
@@ -40,6 +39,7 @@ public class SnakeController : NetworkBehaviour
         if (mouseWorldCoordinates != _transform.position)
         {
             Vector3 targetDirection = mouseWorldCoordinates - _transform.position;
+            targetDirection.z = 0f;
             _transform.up = targetDirection;
         }
     }
