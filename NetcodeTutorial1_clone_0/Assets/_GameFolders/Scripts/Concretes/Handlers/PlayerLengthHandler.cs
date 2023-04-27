@@ -40,8 +40,7 @@ public class PlayerLengthHandler : NetworkBehaviour
     }
 
     //this will be called by server
-    [ContextMenu(nameof(AddLength))]
-    private void AddLength()
+    public void AddLength()
     {
         Length.Value += 1;
         InstantiateTail(); //Server
