@@ -67,9 +67,27 @@ public class PlayerLengthHandler : NetworkBehaviour
             tailController.NetworkOwner = _transform;
             tailController.FollowTransform = _lastTail;
             _lastTail = tailController.transform;
-            Physics2D.GetIgnoreCollision(tailController.GetComponent<Collider2D>(), _collider2D);
+            var collision = tailController.GetComponent<Collider2D>();
+            Physics2D.GetIgnoreCollision(collision, _collider2D);
+            collision.enabled = true;   
         }
         
         _tails.Add(tailObject);
+    }
+
+    public override void OnNetworkDespawn()
+    {
+        base.OnNetworkDespawn();
+        DestroyTails();
+    }
+
+    void DestroyTails()
+    {
+        while (_tails.Count != 0)
+        {
+            GameObject tail = _tails[0];
+            _tails.RemoveAt(0);
+            Destroy(tail);
+        }
     }
 }

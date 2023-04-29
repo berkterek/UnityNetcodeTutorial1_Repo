@@ -5,15 +5,27 @@ public class PlayerController : NetworkBehaviour
 {
     [SerializeField] float _moveSpeed = 5f;
     [SerializeField] Transform _transform;
+    [SerializeField] PlayerLengthHandler _playerLengthHandler;
 
     Camera _mainCamera;
     Vector3 _mouseInput = Vector3.zero;
+    readonly ulong[] _targetClientsArray = new ulong[1];
+
+    public static event System.Action OnGameOveredEvent;
 
     private void Initialize()
     {
         this.enabled = IsOwner;
         _mainCamera = Camera.main;
         _transform = transform;
+    }
+
+    void OnValidate()
+    {
+        if (_playerLengthHandler == null)
+        {
+            _playerLengthHandler = GetComponent<PlayerLengthHandler>();
+        }
     }
 
     public override void OnNetworkSpawn()
@@ -25,7 +37,7 @@ public class PlayerController : NetworkBehaviour
     void Update()
     {
         if (!Application.isFocused) return;
-        
+
         _mouseInput = (Vector2)Input.mousePosition;
         _mouseInput.z = _mainCamera.nearClipPlane;
         Vector3 mouseWorldCoordinates = _mainCamera.ScreenToWorldPoint(_mouseInput);
@@ -42,6 +54,100 @@ public class PlayerController : NetworkBehaviour
             Vector3 targetDirection = mouseWorldCoordinates - _transform.position;
             targetDirection.z = 0f;
             _transform.up = targetDirection;
+        }
+    }
+
+    //ServerRpc means this code triggered on client send to server only server run this code
+    //RequireOwnerShip means this if equal true only owner can send this method to server and server updated only owner client see result if its equal false its global and owner send this to server and everybody see result
+    [ServerRpc(RequireOwnership = false)]
+    private void DetermineCollisionWinnerServerRpc(PlayerData player1, PlayerData player2)
+    {
+        if (player1.Length > player2.Length)
+        {
+            WinInformationServerRpc(player1.Id, player2.Id);
+        }
+        else
+        {
+            WinInformationServerRpc(player2.Id, player1.Id);
+        }
+    }
+
+    [ServerRpc]
+    private void WinInformationServerRpc(ulong winner, ulong loser)
+    {
+        _targetClientsArray[0] = winner;
+        ClientRpcParams clientRpcParams = new ClientRpcParams()
+        {
+            Send = new ClientRpcSendParams
+            {
+                TargetClientIds = _targetClientsArray
+            }
+        };
+        AtePlayerClientRpc(clientRpcParams);
+
+        _targetClientsArray[0] = loser;
+        clientRpcParams.Send.TargetClientIds = _targetClientsArray;
+        GameOverClientRpc(clientRpcParams);
+    }
+
+    //ClientRpc means this code triggered on Server send to client
+    [ClientRpc]
+    private void AtePlayerClientRpc(ClientRpcParams clientRpcParams = default)
+    {
+        if (!IsOwner) return;
+        Debug.Log("You ate a player");
+    }
+
+    [ClientRpc]
+    private void GameOverClientRpc(ClientRpcParams clientRpcParams = default)
+    {
+        if (!IsOwner) return;
+        Debug.Log("You lose");
+        OnGameOveredEvent?.Invoke();
+        NetworkManager.Singleton.Shutdown();
+    }
+
+    void OnCollisionEnter2D(Collision2D other)
+    {
+        Debug.Log("Player Collision");
+        if (!other.gameObject.CompareTag("Player")) return;
+        if (!IsOwner) return;
+
+        if (other.collider.TryGetComponent(out PlayerLengthHandler playerLengthHandler))
+        {
+            var player1 = new PlayerData
+            {
+                Id = OwnerClientId,
+                Length = _playerLengthHandler.Length.Value
+            };
+
+            var player2 = new PlayerData
+            {
+                Id = playerLengthHandler.OwnerClientId,
+                Length = playerLengthHandler.Length.Value
+            };
+            DetermineCollisionWinnerServerRpc(player1, player2);
+        }
+        else if (other.collider.TryGetComponent(out TailController tailController))
+        {
+            var id = tailController.NetworkOwner.GetComponent<PlayerController>().OwnerClientId;
+
+            if (id == OwnerClientId) return;
+            
+            Debug.Log("Tail Collision");
+            WinInformationServerRpc(id, OwnerClientId);
+        }
+    }
+
+    struct PlayerData : INetworkSerializable
+    {
+        public ulong Id;
+        public ushort Length;
+
+        public void NetworkSerialize<T>(BufferSerializer<T> serializer) where T : IReaderWriter
+        {
+            serializer.SerializeValue(ref Id);
+            serializer.SerializeValue(ref Length);
         }
     }
 }
