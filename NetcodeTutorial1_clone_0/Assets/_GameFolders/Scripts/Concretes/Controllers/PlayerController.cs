@@ -1,3 +1,4 @@
+using System.Collections;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -9,6 +10,7 @@ public class PlayerController : NetworkBehaviour
 
     Camera _mainCamera;
     Vector3 _mouseInput = Vector3.zero;
+    bool _canCollide = true;
     readonly ulong[] _targetClientsArray = new ulong[1];
 
     public static event System.Action OnGameOveredEvent;
@@ -112,6 +114,8 @@ public class PlayerController : NetworkBehaviour
         Debug.Log("Player Collision");
         if (!other.gameObject.CompareTag("Player")) return;
         if (!IsOwner) return;
+        if (!_canCollide) return;
+        StartCoroutine(CollisionCheckAsync());
 
         if (other.collider.TryGetComponent(out PlayerLengthHandler playerLengthHandler))
         {
@@ -137,6 +141,13 @@ public class PlayerController : NetworkBehaviour
             Debug.Log("Tail Collision");
             WinInformationServerRpc(id, OwnerClientId);
         }
+    }
+
+    private IEnumerator CollisionCheckAsync()
+    {
+        _canCollide = false;
+        yield return new WaitForSeconds(0.5f);
+        _canCollide = true;
     }
 
     struct PlayerData : INetworkSerializable
