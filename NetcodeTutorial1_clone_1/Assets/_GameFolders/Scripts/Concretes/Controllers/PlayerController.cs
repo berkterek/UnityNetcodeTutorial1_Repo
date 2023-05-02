@@ -40,6 +40,39 @@ public class PlayerController : NetworkBehaviour
     {
         if (!Application.isFocused) return;
 
+        MovePlayerServer();
+    }
+
+    void MovePlayerServer()
+    {
+        _mouseInput = (Vector2)Input.mousePosition;
+        _mouseInput.z = _mainCamera.nearClipPlane;
+        Vector3 mouseWorldCoordinates = _mainCamera.ScreenToWorldPoint(_mouseInput);
+        mouseWorldCoordinates.z = 0f;
+        MovePlayerServerRpc(mouseWorldCoordinates);
+    }
+
+    [ServerRpc]
+    void MovePlayerServerRpc(Vector3 mouseWorldCoordinates)
+    {
+        transform.position = Vector3.MoveTowards
+        (
+            _transform.position,
+            mouseWorldCoordinates,
+            Time.deltaTime * _moveSpeed
+        );
+
+        if (mouseWorldCoordinates != _transform.position)
+        {
+            Vector3 targetDirection = mouseWorldCoordinates - _transform.position;
+            targetDirection.z = 0f;
+            _transform.up = targetDirection;
+        }
+    }
+
+    //Client authority movement
+    void MovePlayerClient()
+    {
         _mouseInput = (Vector2)Input.mousePosition;
         _mouseInput.z = _mainCamera.nearClipPlane;
         Vector3 mouseWorldCoordinates = _mainCamera.ScreenToWorldPoint(_mouseInput);
